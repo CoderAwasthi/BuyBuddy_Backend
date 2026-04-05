@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: price-drop-service
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/pricedrop-dev

@@ -1,0 +1,38 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: pricedrop-service
+
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/pricedrop
+
+#  jackson:
+#    serialization:
+#      write-dates-as-timestamps: false
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: INFO
+    org.springframework.data.mongodb: INFO
+
+---
+
+# Custom app configs
+app:
+  scheduler:
+    enabled: true
+    interval: 1800000   # 30 minutes in ms
+
+  scraping:
+    user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
+    timeout: 5000
+
+  affiliate:
+    tag: yourtag-21
+
+  deals:
+    limit: 10

@@ -20,19 +20,38 @@ public class ProductService {
 
     public Mono<Void> trackProduct(Product product) {
 
-        return productRepo.findByAsin(product.getAsin())
-                .flatMap(existing -> updateProduct(existing, product.getCurrentPrice()))
+//        return productRepo.findByAsin(product.getAsin())
+//                .flatMap(existing -> updateProduct(existing, product.getCurrentPrice()))
+//                .switchIfEmpty(createNew(product))
+//                .then();
+        return productRepo.findByAsinAndUserId(product.getAsin(), product.getUserId())
+                .flatMap(existing -> updateProduct(existing, product))
                 .switchIfEmpty(createNew(product))
                 .then();
     }
 
-    private Mono<Product> updateProduct(Product existing, Double newPrice) {
+    private Mono<Product> updateProduct(Product existing, Product incoming) {
+
+//        if (newPrice < existing.getLowestPrice()) {
+//            existing.setLowestPrice(newPrice);
+//        }
+//
+//        existing.setCurrentPrice(newPrice);
+//
+//        return productRepo.save(existing)
+//                .then(saveHistory(existing.getAsin(), newPrice))
+//                .thenReturn(existing);
+        Double newPrice = incoming.getCurrentPrice();
 
         if (newPrice < existing.getLowestPrice()) {
             existing.setLowestPrice(newPrice);
         }
 
         existing.setCurrentPrice(newPrice);
+        existing.setMrp(incoming.getMrp());
+        existing.setRating(incoming.getRating());
+        existing.setReviews(incoming.getReviews());
+        existing.setImage(incoming.getImage());
 
         return productRepo.save(existing)
                 .then(saveHistory(existing.getAsin(), newPrice))

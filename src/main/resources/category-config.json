@@ -1,0 +1,82 @@
+{
+  "audio": {
+    "earbuds": ["earbud", "earbuds", "tws", "in-ear"],
+    "headphones": ["headphone", "over ear", "on ear"],
+    "speakers": ["speaker", "bluetooth speaker", "soundbar"],
+    "microphones": ["mic", "microphone"]
+  },
+
+  "mobile": {
+    "smartphone": ["phone", "smartphone", "iphone", "android"],
+    "accessories": ["charger", "case", "cover", "tempered glass", "cable"]
+  },
+
+  "laptop": {
+    "laptop": ["laptop", "notebook", "macbook"],
+    "accessories": ["laptop bag", "cooling pad", "keyboard cover"]
+  },
+
+  "electronics": {
+    "tv": ["tv", "television", "smart tv"],
+    "monitor": ["monitor", "display"],
+    "camera": ["camera", "dslr", "mirrorless"],
+    "printer": ["printer", "scanner"]
+  },
+
+  "appliances": {
+    "refrigerator": ["fridge", "refrigerator"],
+    "washing_machine": ["washing machine"],
+    "air_conditioner": ["ac", "air conditioner"],
+    "cooler": ["air cooler"],
+    "microwave": ["microwave", "oven"]
+  },
+
+  "fashion": {
+    "mens_clothing": ["shirt", "t-shirt", "jeans", "trouser", "kurta"],
+    "womens_clothing": ["saree", "dress", "top", "kurti"],
+    "footwear": ["shoes", "sneakers", "sandals", "heels"],
+    "accessories": ["watch", "belt", "wallet", "sunglasses"]
+  },
+
+  "beauty": {
+    "skincare": ["face wash", "cream", "serum", "moisturizer"],
+    "haircare": ["shampoo", "conditioner", "hair oil"],
+    "makeup": ["lipstick", "foundation", "kajal"]
+  },
+
+  "home": {
+    "furniture": ["chair", "table", "sofa", "bed"],
+    "decor": ["wall art", "lamp", "light", "decor", "Clock"],
+    "kitchen": ["utensil", "cookware", "pan", "kadai"]
+  },
+
+  "fitness": {
+    "gym": ["dumbbell", "barbell", "bench", "gym"],
+    "yoga": ["yoga mat"],
+    "wearables": ["fitness band", "smartwatch"]
+  },
+
+  "gaming": {
+    "console": ["playstation", "xbox"],
+    "accessories": ["controller", "gaming mouse", "gaming keyboard"],
+    "games": ["game cd", "ps5 game"]
+  },
+
+  "books": {
+    "books": ["book", "novel", "paperback", "hardcover"]
+  },
+
+  "kids": {
+    "toys": ["toy", "lego", "puzzle"],
+    "baby_products": ["diaper", "baby", "feeding bottle"]
+  },
+
+  "automotive": {
+    "car_accessories": ["car cover", "seat cover", "car charger"],
+    "bike_accessories": ["helmet", "bike cover"]
+  },
+
+  "general": {
+    "general": []
+  }
+}

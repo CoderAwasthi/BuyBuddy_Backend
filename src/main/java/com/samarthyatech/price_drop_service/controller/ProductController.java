@@ -15,26 +15,36 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductService service;
+    private final ProductService productService;
     private final DealService dealService;
 
     @PostMapping("/track")
     public Mono<Void> track(@RequestBody Product product) {
-        return service.trackProduct(product);
+        return productService.trackProduct(product);
     }
 
     @GetMapping("/history")
     public Flux<PriceHistory> history(@RequestParam String asin) {
-        return service.getHistory(asin);
+        return productService.getHistory(asin);
     }
 
     @GetMapping("/allhistory")
     public Flux<PriceHistory> allhistory() {
-        return service.getAllHistory();
+        return productService.getAllHistory();
     }
 
+//    @GetMapping("/deals")
+//    public Flux<DealResponse> deals() {
+//        return dealService.getTopDeals();
+//    }
+
     @GetMapping("/deals")
-    public Flux<DealResponse> deals() {
-        return dealService.getTopDeals();
+    public Flux<DealResponse> deals(@RequestParam String category,@RequestParam String subCategory) {
+        return dealService.getDeals(category,subCategory);
+    }
+
+    @GetMapping("/analyze")
+    public Mono<DealResponse> analyze(@RequestParam String asin) {
+        return dealService.analyze(asin);
     }
 }

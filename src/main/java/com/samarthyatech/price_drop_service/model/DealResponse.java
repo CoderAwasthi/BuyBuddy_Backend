@@ -14,4 +14,9 @@ public class DealResponse {
     private Double score;
     private String decision;
     private Double discount;
+    private String trend;
+    private String insight;
+    private Double lowestPrice;
+    private Double highestPrice;
+    private Double averagePrice;
 }

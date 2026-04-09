@@ -1,5 +1,6 @@
 package com.samarthyatech.price_drop_service.service;
 
+import com.samarthyatech.price_drop_service.model.CategoryResult;
 import com.samarthyatech.price_drop_service.model.PriceHistory;
 import com.samarthyatech.price_drop_service.model.Product;
 import com.samarthyatech.price_drop_service.repo.PriceHistoryRepository;
@@ -17,13 +18,9 @@ public class ProductService {
 
     private final ProductRepository productRepo;
     private final PriceHistoryRepository historyRepo;
+    private final CategoryService categoryService;
 
     public Mono<Void> trackProduct(Product product) {
-
-//        return productRepo.findByAsin(product.getAsin())
-//                .flatMap(existing -> updateProduct(existing, product.getCurrentPrice()))
-//                .switchIfEmpty(createNew(product))
-//                .then();
         return productRepo.findByAsinAndUserId(product.getAsin(), product.getUserId())
                 .flatMap(existing -> updateProduct(existing, product))
                 .switchIfEmpty(createNew(product))
@@ -31,27 +28,21 @@ public class ProductService {
     }
 
     private Mono<Product> updateProduct(Product existing, Product incoming) {
-
-//        if (newPrice < existing.getLowestPrice()) {
-//            existing.setLowestPrice(newPrice);
-//        }
-//
-//        existing.setCurrentPrice(newPrice);
-//
-//        return productRepo.save(existing)
-//                .then(saveHistory(existing.getAsin(), newPrice))
-//                .thenReturn(existing);
         Double newPrice = incoming.getCurrentPrice();
 
         if (newPrice < existing.getLowestPrice()) {
             existing.setLowestPrice(newPrice);
         }
 
+        CategoryResult result = categoryService.detect(incoming.getTitle());
+
         existing.setCurrentPrice(newPrice);
         existing.setMrp(incoming.getMrp());
         existing.setRating(incoming.getRating());
         existing.setReviews(incoming.getReviews());
         existing.setImage(incoming.getImage());
+        existing.setCategory(result.getCategory());
+        existing.setSubCategory(result.getSubCategory());
 
         return productRepo.save(existing)
                 .then(saveHistory(existing.getAsin(), newPrice))
@@ -62,6 +53,10 @@ public class ProductService {
 
         product.setLowestPrice(product.getCurrentPrice());
         product.setCreatedAt(LocalDateTime.now());
+        CategoryResult result = categoryService.detect(product.getTitle());
+
+        product.setCategory(result.getCategory());
+        product.setSubCategory(result.getSubCategory());
 
         return productRepo.save(product)
                 .then(saveHistory(product.getAsin(), product.getCurrentPrice()))

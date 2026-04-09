@@ -29,6 +29,10 @@ public class Product {
 
     private String rating;
     private String reviews;
+    private String category;
+    private String subCategory;
+
+    private Double lastNotifiedPrice;
 
     private LocalDateTime createdAt;
 }

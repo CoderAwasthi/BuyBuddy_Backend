@@ -11,10 +11,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
+import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
+
+    //Logger log = Logger.getLogger(ProductService.class);
 
     private final ProductRepository productRepo;
     private final PriceHistoryRepository historyRepo;
@@ -34,8 +37,8 @@ public class ProductService {
             existing.setLowestPrice(newPrice);
         }
 
-        CategoryResult result = categoryService.detect(incoming.getTitle());
-
+        CategoryResult result = categoryService.detect(incoming.getTitle(),incoming.getBreadcrumb());
+        //log.info("Detected category: {} / {}", result.getCategory(), result.getSubCategory());
         existing.setCurrentPrice(newPrice);
         existing.setMrp(incoming.getMrp());
         existing.setRating(incoming.getRating());
@@ -53,7 +56,7 @@ public class ProductService {
 
         product.setLowestPrice(product.getCurrentPrice());
         product.setCreatedAt(LocalDateTime.now());
-        CategoryResult result = categoryService.detect(product.getTitle());
+        CategoryResult result = categoryService.detect(product.getTitle(),product.getBreadcrumb());
 
         product.setCategory(result.getCategory());
         product.setSubCategory(result.getSubCategory());

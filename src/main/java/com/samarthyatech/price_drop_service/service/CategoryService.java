@@ -13,21 +13,26 @@ public class CategoryService {
 
     private final CategoryConfigService configService;
 
-    public CategoryResult detect(String title) {
+    public CategoryResult detectFromKeywords(String title) {
 
         if (title == null) return new CategoryResult("general", "general");
 
         String lower = title.toLowerCase();
 
-        Map<String, Map<String, List<String>>> config = configService.getCategoryMap();
+        Map<String, Map<String, Map<String, List<String>>>> config = configService.getConfig();
 
-        for (String category : config.keySet()) {
+        Map<String, Map<String, List<String>>> breadcrumbMap = config.get("breadcrumbMapping");
+        Map<String, Map<String, List<String>>> keywordMap = config.get("keywordMapping");
 
-            Map<String, List<String>> subMap = config.get(category);
+        for (String category : breadcrumbMap.keySet()) {
+
+            Map<String, List<String>> subMap = breadcrumbMap.get(category);
 
             for (String sub : subMap.keySet()) {
 
-                for (String keyword : subMap.get(sub)) {
+                List<String> keywords = subMap.get(sub);
+
+                for (String keyword : keywords) {
 
                     if (lower.contains(keyword)) {
                         return new CategoryResult(category, sub);
@@ -37,5 +42,27 @@ public class CategoryService {
         }
 
         return new CategoryResult("general", "general");
+    }
+
+    public CategoryResult detect(String title, List<String> breadcrumb) {
+
+        // 1. Try breadcrumb (BEST)
+        CategoryResult fromBreadcrumb = detectFromBreadcrumb(breadcrumb);
+        if (fromBreadcrumb != null) return fromBreadcrumb;
+
+        // 2. Fallback → keyword config
+        return detectFromKeywords(title);
+    }
+
+    public CategoryResult detectFromBreadcrumb(List<String> breadcrumb) {
+
+        if (breadcrumb == null || breadcrumb.isEmpty()) {
+            return null;
+        }
+
+        String category = breadcrumb.get(0); // broad
+        String subCategory = breadcrumb.get(breadcrumb.size() - 1); // most specific
+
+        return new CategoryResult(category, subCategory);
     }
 }

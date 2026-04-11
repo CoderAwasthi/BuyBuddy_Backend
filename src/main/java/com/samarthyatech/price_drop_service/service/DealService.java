@@ -109,7 +109,9 @@ public class DealService {
                 insight,
                 stats.get("min"),
                 stats.get("max"),
-                stats.get("avg")
+                stats.get("avg"),
+                p.getCategory(),
+                p.getSubCategory()
         );
     }
 

@@ -1,82 +1,109 @@
 {
-  "audio": {
-    "earbuds": ["earbud", "earbuds", "tws", "in-ear"],
-    "headphones": ["headphone", "over ear", "on ear"],
-    "speakers": ["speaker", "bluetooth speaker", "soundbar"],
-    "microphones": ["mic", "microphone"]
+  "breadcrumbMapping": {
+    "electronics": {
+      "tv": ["tv", "television"],
+      "monitor": ["monitor", "display"],
+      "camera": ["camera", "dslr", "mirrorless"],
+      "printer": ["printer", "scanner"]
+    },
+
+    "audio": {
+      "earbuds": ["earbuds", "in-ear", "tws"],
+      "headphones": ["headphones", "over-ear", "on-ear"],
+      "speakers": ["speaker", "soundbar", "bluetooth speaker"],
+      "microphones": ["microphone", "mic"]
+    },
+
+    "mobile": {
+      "smartphone": ["smartphone", "mobile phone", "iphone", "android"],
+      "accessories": ["mobile accessories", "charger", "cable", "case"]
+    },
+
+    "laptop": {
+      "laptop": ["laptop", "notebook", "macbook"],
+      "accessories": ["laptop accessories", "cooling pad", "bag"]
+    },
+
+    "home": {
+      "alarm_clock": ["alarm clock", "clock"],
+      "furniture": ["chair", "table", "sofa", "bed"],
+      "decor": ["decor", "wall art", "lamp"],
+      "kitchen": ["kitchen", "cookware", "utensils"]
+    },
+
+    "appliances": {
+      "refrigerator": ["refrigerator", "fridge"],
+      "washing_machine": ["washing machine"],
+      "air_conditioner": ["air conditioner", "ac"],
+      "microwave": ["microwave", "oven"]
+    },
+
+    "fashion": {
+      "mens_clothing": ["men", "shirt", "t-shirt", "jeans"],
+      "womens_clothing": ["women", "dress", "saree", "kurti"],
+      "footwear": ["shoes", "sneakers", "sandals"],
+      "accessories": ["watch", "belt", "wallet"]
+    },
+
+    "beauty": {
+      "skincare": ["face wash", "cream", "serum"],
+      "haircare": ["shampoo", "conditioner", "oil"],
+      "makeup": ["lipstick", "foundation"]
+    },
+
+    "fitness": {
+      "gym": ["dumbbell", "barbell", "gym"],
+      "yoga": ["yoga mat"],
+      "wearables": ["fitness band", "smartwatch"]
+    },
+
+    "gaming": {
+      "console": ["playstation", "xbox"],
+      "accessories": ["controller", "gaming mouse", "keyboard"],
+      "games": ["game", "ps5 game"]
+    },
+
+    "books": {
+      "books": ["book", "novel"]
+    },
+
+    "kids": {
+      "toys": ["toy", "lego", "puzzle"],
+      "baby_products": ["diaper", "baby"]
+    },
+
+    "automotive": {
+      "car_accessories": ["car", "seat cover", "car charger"],
+      "bike_accessories": ["helmet", "bike"]
+    }
   },
 
-  "mobile": {
-    "smartphone": ["phone", "smartphone", "iphone", "android"],
-    "accessories": ["charger", "case", "cover", "tempered glass", "cable"]
-  },
+  "keywordMapping": {
+    "audio": {
+      "earbuds": ["earbud", "earbuds", "tws"],
+      "headphones": ["headphone"],
+      "speakers": ["speaker"]
+    },
 
-  "laptop": {
-    "laptop": ["laptop", "notebook", "macbook"],
-    "accessories": ["laptop bag", "cooling pad", "keyboard cover"]
-  },
+    "mobile": {
+      "smartphone": ["phone", "smartphone", "iphone", "android"]
+    },
 
-  "electronics": {
-    "tv": ["tv", "television", "smart tv"],
-    "monitor": ["monitor", "display"],
-    "camera": ["camera", "dslr", "mirrorless"],
-    "printer": ["printer", "scanner"]
-  },
+    "laptop": {
+      "laptop": ["laptop", "notebook"]
+    },
 
-  "appliances": {
-    "refrigerator": ["fridge", "refrigerator"],
-    "washing_machine": ["washing machine"],
-    "air_conditioner": ["ac", "air conditioner"],
-    "cooler": ["air cooler"],
-    "microwave": ["microwave", "oven"]
-  },
+    "electronics": {
+      "tv": ["tv"],
+      "monitor": ["monitor"]
+    },
 
-  "fashion": {
-    "mens_clothing": ["shirt", "t-shirt", "jeans", "trouser", "kurta"],
-    "womens_clothing": ["saree", "dress", "top", "kurti"],
-    "footwear": ["shoes", "sneakers", "sandals", "heels"],
-    "accessories": ["watch", "belt", "wallet", "sunglasses"]
-  },
+    "home": {
+      "alarm_clock": ["alarm clock", "clock"]
+    },
 
-  "beauty": {
-    "skincare": ["face wash", "cream", "serum", "moisturizer"],
-    "haircare": ["shampoo", "conditioner", "hair oil"],
-    "makeup": ["lipstick", "foundation", "kajal"]
-  },
-
-  "home": {
-    "furniture": ["chair", "table", "sofa", "bed"],
-    "decor": ["wall art", "lamp", "light", "decor", "Clock"],
-    "kitchen": ["utensil", "cookware", "pan", "kadai"]
-  },
-
-  "fitness": {
-    "gym": ["dumbbell", "barbell", "bench", "gym"],
-    "yoga": ["yoga mat"],
-    "wearables": ["fitness band", "smartwatch"]
-  },
-
-  "gaming": {
-    "console": ["playstation", "xbox"],
-    "accessories": ["controller", "gaming mouse", "gaming keyboard"],
-    "games": ["game cd", "ps5 game"]
-  },
-
-  "books": {
-    "books": ["book", "novel", "paperback", "hardcover"]
-  },
-
-  "kids": {
-    "toys": ["toy", "lego", "puzzle"],
-    "baby_products": ["diaper", "baby", "feeding bottle"]
-  },
-
-  "automotive": {
-    "car_accessories": ["car cover", "seat cover", "car charger"],
-    "bike_accessories": ["helmet", "bike cover"]
-  },
-
-  "general": {
-    "general": []
+    "general": {
+      "general": []
+    }
   }
 }

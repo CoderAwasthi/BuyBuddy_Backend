@@ -3,6 +3,7 @@ package com.samarthyatech.price_drop_service.service;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import org.springframework.stereotype.Service;
+import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
 import java.io.InputStream;
@@ -13,7 +14,7 @@ import java.util.Map;
 @Service
 public class CategoryConfigService {
 
-    private Map<String, Map<String, List<String>>> categoryMap;
+    private Map<String, Map<String, Map<String, List<String>>>> config;
 
     @PostConstruct
     public void loadConfig() throws Exception {
@@ -24,7 +25,13 @@ public class CategoryConfigService {
                 .getClassLoader()
                 .getResourceAsStream("category-config.json");
 
-        categoryMap = mapper.readValue(is, Map.class);
+        config = mapper.readValue(
+                is,
+                new TypeReference<Map<String, Map<String, Map<String, List<String>>>>>() {}
+        );
     }
 
+    public Map<String, Map<String, Map<String, List<String>>>> getCategoryMap() {
+        return config;
+    }
 }

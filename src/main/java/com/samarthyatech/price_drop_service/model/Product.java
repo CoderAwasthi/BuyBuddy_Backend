@@ -6,6 +6,7 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Document(collection = "products")
@@ -31,7 +32,8 @@ public class Product {
     private String reviews;
     private String category;
     private String subCategory;
-
+//    private String hierarchy;
+    private List<String> breadcrumb;
     private Double lastNotifiedPrice;
 
     private LocalDateTime createdAt;

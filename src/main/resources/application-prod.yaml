@@ -3,4 +3,4 @@ spring:
     name: price-drop-service
   data:
     mongodb:
-      uri: mongodb+srv://<user>:<pass>@cluster.mongodb.net/pricedrop
+      uri: mongodb+srv://awasthi116_db_user:<db_password>@cluster0.3lmb5zk.mongodb.net/?appName=Cluster0

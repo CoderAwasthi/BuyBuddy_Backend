@@ -8,6 +8,8 @@ import com.samarthyatech.price_drop_service.repo.PriceHistoryRepository;
 import com.samarthyatech.price_drop_service.repo.ProductRepository;
 import com.samarthyatech.price_drop_service.scraper.PriceScraper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
@@ -17,6 +19,8 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class PriceDropService {
+
+    private static final Logger logger = LoggerFactory.getLogger(PriceDropService.class);
 
     private final ProductRepository productRepo;
     private final PriceHistoryRepository historyRepo;

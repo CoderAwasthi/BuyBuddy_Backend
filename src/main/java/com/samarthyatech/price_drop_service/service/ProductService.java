@@ -5,19 +5,21 @@ import com.samarthyatech.price_drop_service.model.PriceHistory;
 import com.samarthyatech.price_drop_service.model.Product;
 import com.samarthyatech.price_drop_service.repo.PriceHistoryRepository;
 import com.samarthyatech.price_drop_service.repo.ProductRepository;
+import com.samarthyatech.price_drop_service.scraper.PriceScraper;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.logging.Logger;
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
 
-    //Logger log = Logger.getLogger(ProductService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ProductService.class);
 
     private final ProductRepository productRepo;
     private final PriceHistoryRepository historyRepo;
@@ -38,7 +40,6 @@ public class ProductService {
         }
 
         CategoryResult result = categoryService.detect(incoming.getTitle(),incoming.getBreadcrumb());
-        //log.info("Detected category: {} / {}", result.getCategory(), result.getSubCategory());
         existing.setCurrentPrice(newPrice);
         existing.setMrp(incoming.getMrp());
         existing.setRating(incoming.getRating());

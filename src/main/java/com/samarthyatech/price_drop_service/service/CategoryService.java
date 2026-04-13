@@ -2,6 +2,8 @@ package com.samarthyatech.price_drop_service.service;
 
 import com.samarthyatech.price_drop_service.model.CategoryResult;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -10,6 +12,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CategoryService.class);
 
     private final CategoryConfigService configService;
 

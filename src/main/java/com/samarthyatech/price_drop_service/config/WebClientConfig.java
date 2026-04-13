@@ -15,6 +15,9 @@ public class WebClientConfig {
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
+                .defaultHeader("User-Agent",
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36")
+                .defaultHeader("Accept-Language", "en-IN,en;q=0.9")
                 .defaultHeader("User-Agent", appConfig.getScraping().getUserAgent())
                 .build();
     }

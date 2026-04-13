@@ -39,8 +39,8 @@ public class ProductController {
 //    }
 
     @GetMapping("/deals")
-    public Flux<DealResponse> deals(@RequestParam String category,@RequestParam String subCategory) {
-        return dealService.getDeals(category,subCategory);
+    public Flux<DealResponse> deals(@RequestParam String category,@RequestParam String subCategory,@RequestParam(required = false) String excludeAsin) {
+        return dealService.getDeals(category,subCategory,excludeAsin);
     }
 
     @GetMapping("/analyze")

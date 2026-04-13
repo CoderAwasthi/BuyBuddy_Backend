@@ -2,6 +2,8 @@ package com.samarthyatech.price_drop_service.service;
 
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
@@ -13,6 +15,8 @@ import java.util.Map;
 @Getter
 @Service
 public class CategoryConfigService {
+
+    private static final Logger logger = LoggerFactory.getLogger(CategoryConfigService.class);
 
     private Map<String, Map<String, Map<String, List<String>>>> config;
 

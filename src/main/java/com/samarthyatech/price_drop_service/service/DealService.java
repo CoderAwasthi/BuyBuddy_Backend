@@ -6,6 +6,8 @@ import com.samarthyatech.price_drop_service.model.Product;
 import com.samarthyatech.price_drop_service.repo.PriceHistoryRepository;
 import com.samarthyatech.price_drop_service.repo.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -16,6 +18,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class DealService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DealService.class);
 
     private final ProductRepository productRepo;
     private final PriceHistoryRepository priceHistoryRepository;
@@ -55,10 +59,15 @@ public class DealService {
                 .take(10);
     }
 
-    public Flux<DealResponse> getDeals(String category, String subCategory) {
+    public Flux<DealResponse> getDeals(String category, String subCategory, String excludeAsin) {
 
         return productRepo.findAll()
                 .filter(p -> {
+
+                    // ❌ REMOVE CURRENT PRODUCT
+                    if (excludeAsin != null && excludeAsin.equals(p.getAsin())) {
+                        return false;
+                    }
 
                     if (subCategory != null && !subCategory.equals("general")) {
                         return subCategory.equalsIgnoreCase(p.getSubCategory());

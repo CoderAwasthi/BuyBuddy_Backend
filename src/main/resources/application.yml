@@ -26,6 +26,7 @@ app:
   scheduler:
     enabled: true
     interval: 60000   # 30 minutes in ms 1800000
+  env: dev
 
   scraping:
     user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)

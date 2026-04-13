@@ -8,3 +8,4 @@ spring:
 app:
   scheduler:
     interval: 60000   # 1 min for testing
+  env: dev

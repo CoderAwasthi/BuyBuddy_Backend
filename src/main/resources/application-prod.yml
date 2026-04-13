@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: price-drop-service
+  data:
+    mongodb:
+      # Standard URI (for Sync driver)
+      uri: mongodb+srv://awasthi116_db_user:XTqZ3HxS21uUofpt@cluster0.3lmb5zk.mongodb.net/pricedrop-prod?appName=Cluster0
+      # ADD THIS FOR REACTIVE DRIVER
+      reactive:
+        uri: mongodb+srv://awasthi116_db_user:XTqZ3HxS21uUofpt@cluster0.3lmb5zk.mongodb.net/pricedrop-prod?appName=Cluster0
+
+logging:
+  level:
+    org.springframework.data.mongodb: DEBUG  # Fixed this line
+
+app:
+  env: prod

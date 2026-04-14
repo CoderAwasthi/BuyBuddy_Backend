@@ -19,6 +19,7 @@ public class DealResponse {
     private Double lowestPrice;
     private Double highestPrice;
     private Double averagePrice;
+    private String currency;
     private String category;
     private String subCategory;
 }

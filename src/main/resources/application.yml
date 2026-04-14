@@ -32,8 +32,8 @@ app:
     user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
     timeout: 5000
 
-  affiliate:
-    tag: yourtag-21
-
   deals:
     limit: 10
+
+affiliate:
+  tag: yourtag-21

@@ -25,6 +25,7 @@ public class Product {
     private String image;
 
     private Double currentPrice;
+    private String currency;
     private Double lowestPrice;
     private Double mrp;
 
@@ -32,9 +33,7 @@ public class Product {
     private String reviews;
     private String category;
     private String subCategory;
-//    private String hierarchy;
     private List<String> breadcrumb;
     private Double lastNotifiedPrice;
-
     private LocalDateTime createdAt;
 }

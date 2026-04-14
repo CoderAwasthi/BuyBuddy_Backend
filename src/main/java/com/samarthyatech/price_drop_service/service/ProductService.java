@@ -41,6 +41,7 @@ public class ProductService {
 
         CategoryResult result = categoryService.detect(incoming.getTitle(),incoming.getBreadcrumb());
         existing.setCurrentPrice(newPrice);
+        existing.setCurrency(incoming.getCurrency());
         existing.setMrp(incoming.getMrp());
         existing.setRating(incoming.getRating());
         existing.setReviews(incoming.getReviews());

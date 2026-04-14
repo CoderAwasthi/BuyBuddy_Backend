@@ -45,6 +45,7 @@ public class DealService {
                                         "NO_DATA",
                                         "Not enough data yet",
                                         (double) 0, (double) 0, (double) 0,
+                                        "-",
                                         "general",
                                         "general"
                                 )
@@ -118,6 +119,7 @@ public class DealService {
                     p.getCurrentPrice(),
                     p.getCurrentPrice(),
                     p.getCurrentPrice(),
+                    p.getCurrency(),
                     p.getCategory(),
                     p.getSubCategory()
             );
@@ -155,6 +157,7 @@ public class DealService {
                 stats.get("min"),
                 stats.get("max"),
                 stats.get("avg"),
+                p.getCurrency(),
                 p.getCategory(),
                 p.getSubCategory()
         );

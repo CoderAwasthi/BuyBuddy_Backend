@@ -4,6 +4,9 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/pricedrop-dev
+      
+affiliate:
+  tag: keertiawast-21
 
 app:
   scheduler:

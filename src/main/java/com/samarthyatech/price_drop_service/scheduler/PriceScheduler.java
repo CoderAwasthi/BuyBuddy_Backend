@@ -19,30 +19,30 @@ public class PriceScheduler {
     private final PriceScraper scraper;
     private final PriceDropService priceDropService;
 
-    @Scheduled(fixedRateString = "${app.scheduler.interval}")
-    public void updatePrices() {
+//    @Scheduled(fixedRateString = "${app.scheduler.interval}")
+//    public void updatePrices() {
+//
+//        productRepo.findAll()
+//                .flatMap(product ->
+//                        webClient.get()
+//                                .uri(product.getUrl())
+//                                .retrieve()
+//                                .bodyToMono(String.class)
+//                                .map(scraper::extractPrice)
+//                                .flatMap(price -> {
+//                                    product.setCurrentPrice(price);
+//                                    return service.trackProduct(product);
+//                                })
+//                )
+//                .subscribe();
+//    }
 
-        productRepo.findAll()
-                .flatMap(product ->
-                        webClient.get()
-                                .uri(product.getUrl())
-                                .retrieve()
-                                .bodyToMono(String.class)
-                                .map(scraper::extractPrice)
-                                .flatMap(price -> {
-                                    product.setCurrentPrice(price);
-                                    return service.trackProduct(product);
-                                })
-                )
-                .subscribe();
-    }
-
-    @Scheduled(fixedRateString = "${app.scheduler.interval}")
-    public void runScheduler() {
-
-        productRepo.findAll()
-                .flatMap(priceDropService::processProduct)
-                .onErrorContinue((e, obj) -> System.out.println("Error processing: " + obj))
-                .subscribe();
-    }
+//    @Scheduled(fixedRateString = "${app.scheduler.interval}")
+//    public void runScheduler() {
+//
+//        productRepo.findAll()
+//                .flatMap(priceDropService::processProduct)
+//                .onErrorContinue((e, obj) -> System.out.println("Error processing: " + obj))
+//                .subscribe();
+//    }
 }

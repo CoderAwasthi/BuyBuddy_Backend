@@ -2,6 +2,7 @@ package com.samarthyatech.price_drop_service.controller;
 
 import com.samarthyatech.price_drop_service.model.ClickEvent;
 import com.samarthyatech.price_drop_service.repo.ClickEventRepo;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.reactive.ServerHttpResponse;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,8 @@ import java.time.LocalDateTime;
 @RequestMapping("/api")
 public class AffiliateController {
 
+    @Value("${affiliate.tag}")
+    private String tag;
     private final ClickEventRepo repo;
 
     public AffiliateController(ClickEventRepo repo) {
@@ -44,8 +47,6 @@ public class AffiliateController {
             case "amazon.co.uk" -> "https://www.amazon.co.uk/dp/";
             default -> "https://www.amazon.in/dp/";
         };
-
-        String tag = "yourtag-21";
 
         String finalUrl = baseUrl + asin +
                 "?tag=" + tag +

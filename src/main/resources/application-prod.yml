@@ -13,5 +13,8 @@ logging:
   level:
     org.springframework.data.mongodb: DEBUG  # Fixed this line
 
+affiliate:
+    tag: keertiawast-21
+
 app:
   env: prod

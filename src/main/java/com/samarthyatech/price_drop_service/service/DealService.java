@@ -31,6 +31,24 @@ public class DealService {
                         priceHistoryRepository.findByAsinOrderByDateAsc(asin)
                                 .collectList()
                                 .map(history -> calculateDeal(product, history))
+                )
+                .switchIfEmpty(
+                        Mono.just(
+                                new DealResponse(
+                                        asin,
+                                        "No Data",
+                                        null,
+                                        (double) 0,
+                                        (double) 0,
+                                        "WAIT",
+                                        (double) 0,
+                                        "NO_DATA",
+                                        "Not enough data yet",
+                                        (double) 0, (double) 0, (double) 0,
+                                        "general",
+                                        "general"
+                                )
+                        )
                 );
     }
 
@@ -86,6 +104,25 @@ public class DealService {
 
     private DealResponse calculateDeal(Product p, List<PriceHistory> history) {
 
+        if (history == null || history.isEmpty()) {
+            return new DealResponse(
+                    p.getAsin(),
+                    p.getTitle(),
+                    p.getImage(),
+                    p.getCurrentPrice(),
+                    (double) 0,
+                    "WAIT",
+                    (double) 0,
+                    "NO_DATA",
+                    "Tracking started recently",
+                    p.getCurrentPrice(),
+                    p.getCurrentPrice(),
+                    p.getCurrentPrice(),
+                    p.getCategory(),
+                    p.getSubCategory()
+            );
+        }
+
         double current = p.getCurrentPrice();
         double lowest = p.getLowestPrice();
 
@@ -93,9 +130,8 @@ public class DealService {
                 ? (p.getMrp() - current) / p.getMrp()
                 : 0;
 
-        double score =
-                ((lowest / current) * 7) +
-                        (discount * 3);
+        double safeCurrent = current > 0 ? current : 1;
+        double score = ((lowest / safeCurrent) * 7) + (discount * 3);
 
         score = Math.min(score, 10);
 

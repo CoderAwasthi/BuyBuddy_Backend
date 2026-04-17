@@ -17,4 +17,7 @@ affiliate:
     tag: keertiawast-21
 
 app:
+  scheduler:
+    enabled: false    # Disabled by default - enable with caution
+    interval: 1800000   # 30 minutes for production (5 mins in dev)
   env: prod

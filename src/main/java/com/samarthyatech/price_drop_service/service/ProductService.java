@@ -5,7 +5,6 @@ import com.samarthyatech.price_drop_service.model.PriceHistory;
 import com.samarthyatech.price_drop_service.model.Product;
 import com.samarthyatech.price_drop_service.repo.PriceHistoryRepository;
 import com.samarthyatech.price_drop_service.repo.ProductRepository;
-import com.samarthyatech.price_drop_service.scraper.PriceScraper;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +47,7 @@ public class ProductService {
         existing.setImage(incoming.getImage());
         existing.setCategory(result.getCategory());
         existing.setSubCategory(result.getSubCategory());
+        existing.setUpdatedAt(LocalDateTime.now());
 
         return productRepo.save(existing)
                 .then(saveHistory(existing.getAsin(), newPrice))

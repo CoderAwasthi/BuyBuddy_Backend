@@ -19,6 +19,15 @@ logging:
     org.springframework.web: INFO
     org.springframework.data.mongodb: INFO
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,env,configprops
+  endpoint:
+    health:
+      show-details: always
+
 ---
 
 # Custom app configs

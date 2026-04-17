@@ -31,9 +31,12 @@ public class Product {
 
     private String rating;
     private String reviews;
+    @Indexed
     private String category;
+    @Indexed
     private String subCategory;
     private List<String> breadcrumb;
     private Double lastNotifiedPrice;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 }

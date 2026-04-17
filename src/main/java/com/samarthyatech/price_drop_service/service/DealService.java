@@ -3,11 +3,16 @@ package com.samarthyatech.price_drop_service.service;
 import com.samarthyatech.price_drop_service.model.DealResponse;
 import com.samarthyatech.price_drop_service.model.PriceHistory;
 import com.samarthyatech.price_drop_service.model.Product;
+import com.samarthyatech.price_drop_service.model.Stats;
 import com.samarthyatech.price_drop_service.repo.PriceHistoryRepository;
 import com.samarthyatech.price_drop_service.repo.ProductRepository;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -15,6 +20,10 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Service for analyzing product price deals based on historical data.
+ * Calculates deal scores, trends, and insights for price drop detection.
+ */
 @Service
 @RequiredArgsConstructor
 public class DealService {
@@ -23,14 +32,32 @@ public class DealService {
 
     private final ProductRepository productRepo;
     private final PriceHistoryRepository priceHistoryRepository;
+    private final MeterRegistry meterRegistry;
 
+    @Value("${app.deals.limit:10}")
+    private int dealLimit;
+
+    private Counter dealsGenerated;
+
+    @PostConstruct
+    public void init() {
+        dealsGenerated = meterRegistry.counter("deals.generated");
+    }
+
+    /**
+     * Analyzes a single product's deal information by ASIN.
+     *
+     * @param asin The Amazon Standard Identification Number of the product
+     * @return Mono containing the deal analysis response, or empty if product not found
+     */
     public Mono<DealResponse> analyze(String asin) {
 
         return productRepo.findByAsin(asin)
                 .flatMap(product ->
-                        priceHistoryRepository.findByAsinOrderByDateAsc(asin)
-                                .collectList()
-                                .map(history -> calculateDeal(product, history))
+                        Mono.zip(
+                                priceHistoryRepository.getStatsByAsin(asin).defaultIfEmpty(new Stats(0.0, 0.0, 0.0)),
+                                priceHistoryRepository.findTop3ByAsinOrderByDateDesc(asin).collectList()
+                        ).map(tuple -> calculateDeal(product, tuple.getT1(), tuple.getT2()))
                 )
                 .switchIfEmpty(
                         Mono.just(
@@ -53,31 +80,54 @@ public class DealService {
                 );
     }
 
+    /**
+     * Retrieves the top deals across all products, sorted by score descending.
+     *
+     * @return Flux of deal responses, limited to the configured deal limit
+     */
     public Flux<DealResponse> getTopDeals() {
 
         return productRepo.findAll()
                 .flatMap(p ->
-                        priceHistoryRepository.findByAsinOrderByDateAsc(p.getAsin())
-                                .collectList()
-                                .map(history -> calculateDeal(p, history))
+                        Mono.zip(
+                                priceHistoryRepository.getStatsByAsin(p.getAsin()).defaultIfEmpty(new Stats(0.0, 0.0, 0.0)),
+                                priceHistoryRepository.findTop3ByAsinOrderByDateDesc(p.getAsin()).collectList()
+                        ).map(tuple -> calculateDeal(p, tuple.getT1(), tuple.getT2()))
                 )
                 .sort((a, b) -> Double.compare(b.getScore(), a.getScore()))
-                .take(10);
+                .take(dealLimit)
+                .doOnComplete(() -> logger.info("Retrieved top {} deals", dealLimit));
     }
 
+    /**
+     * Retrieves top deals for a specific category, sorted by score descending.
+     *
+     * @param category The product category to filter by
+     * @return Flux of deal responses for the category, limited to the configured deal limit
+     */
     public Flux<DealResponse> getDealsByCategory(String category) {
 
         return productRepo.findAll()
                 .filter(p -> category.equalsIgnoreCase(p.getCategory()))
                 .flatMap(p ->
-                        priceHistoryRepository.findByAsinOrderByDateAsc(p.getAsin())
-                                .collectList()
-                                .map(history -> calculateDeal(p, history))
+                        Mono.zip(
+                                priceHistoryRepository.getStatsByAsin(p.getAsin()).defaultIfEmpty(new Stats(0.0, 0.0, 0.0)),
+                                priceHistoryRepository.findTop3ByAsinOrderByDateDesc(p.getAsin()).collectList()
+                        ).map(tuple -> calculateDeal(p, tuple.getT1(), tuple.getT2()))
                 )
                 .sort((a, b) -> Double.compare(b.getScore(), a.getScore()))
-                .take(10);
+                .take(dealLimit)
+                .doOnComplete(() -> logger.info("Retrieved top {} deals for category: {}", dealLimit, category));
     }
 
+    /**
+     * Retrieves deals filtered by category and subCategory, with optional exclusion.
+     *
+     * @param category The product category to filter by
+     * @param subCategory The product subCategory to filter by (optional)
+     * @param excludeAsin ASIN to exclude from results (optional)
+     * @return Flux of deal responses matching the criteria, limited to the configured deal limit
+     */
     public Flux<DealResponse> getDeals(String category, String subCategory, String excludeAsin) {
 
         return productRepo.findAll()
@@ -95,17 +145,20 @@ public class DealService {
                     return category.equalsIgnoreCase(p.getCategory());
                 })
                 .flatMap(p ->
-                        priceHistoryRepository.findByAsinOrderByDateAsc(p.getAsin())
-                                .collectList()
-                                .map(h -> calculateDeal(p, h))
+                        Mono.zip(
+                                priceHistoryRepository.getStatsByAsin(p.getAsin()).defaultIfEmpty(new Stats(0.0, 0.0, 0.0)),
+                                priceHistoryRepository.findTop3ByAsinOrderByDateDesc(p.getAsin()).collectList()
+                        ).map(tuple -> calculateDeal(p, tuple.getT1(), tuple.getT2()))
                 )
                 .sort((a, b) -> Double.compare(b.getScore(), a.getScore()))
-                .take(10);
+                .take(dealLimit)
+                .doOnComplete(() -> logger.info("Retrieved top {} deals for category: {}, subCategory: {}, excluding ASIN: {}", dealLimit, category, subCategory, excludeAsin));
     }
 
-    private DealResponse calculateDeal(Product p, List<PriceHistory> history) {
+    private DealResponse calculateDeal(Product p, Stats stats, List<PriceHistory> history) {
 
         if (history == null || history.isEmpty()) {
+            logger.debug("No price history for ASIN: {}, returning default deal response", p.getAsin());
             return new DealResponse(
                     p.getAsin(),
                     p.getTitle(),
@@ -142,7 +195,15 @@ public class DealService {
         // 🔥 NEW: Trend + Insight
         String trend = getTrend(history);
         String insight = generateInsight(history, current, lowest);
-        Map<String, Double> stats = calculateStats(history);
+        Map<String, Double> statMap = Map.of(
+                "min", stats.getMin(),
+                "max", stats.getMax(),
+                "avg", stats.getAvg()
+        );
+
+        logger.debug("Calculated deal for ASIN: {} - Score: {}, Decision: {}, Trend: {}, Insight: {}", p.getAsin(), round(score), decision, trend, insight);
+
+        dealsGenerated.increment();
 
         return new DealResponse(
                 p.getAsin(),
@@ -154,9 +215,9 @@ public class DealService {
                 round(discount * 100),
                 trend,
                 insight,
-                stats.get("min"),
-                stats.get("max"),
-                stats.get("avg"),
+                statMap.get("min"),
+                statMap.get("max"),
+                statMap.get("avg"),
                 p.getCurrency(),
                 p.getCategory(),
                 p.getSubCategory()
@@ -167,11 +228,10 @@ public class DealService {
 
         if (history.size() < 3) return "STABLE";
 
-        int n = history.size();
-
-        double p1 = history.get(n - 1).getPrice(); // latest
-        double p2 = history.get(n - 2).getPrice();
-        double p3 = history.get(n - 3).getPrice();
+        // History is ordered by date desc, so index 0 is latest
+        double p1 = history.get(0).getPrice(); // latest
+        double p2 = history.get(1).getPrice();
+        double p3 = history.get(2).getPrice();
 
         if (p1 < p2 && p2 < p3) return "FALLING";
         if (p1 > p2 && p2 > p3) return "RISING";
@@ -214,18 +274,6 @@ public class DealService {
         }
     }
 
-    private Map<String, Double> calculateStats(List<PriceHistory> history) {
-
-        double min = history.stream().mapToDouble(PriceHistory::getPrice).min().orElse(0);
-        double max = history.stream().mapToDouble(PriceHistory::getPrice).max().orElse(0);
-        double avg = history.stream().mapToDouble(PriceHistory::getPrice).average().orElse(0);
-
-        return Map.of(
-                "min", min,
-                "max", max,
-                "avg", avg
-        );
-    }
 
     private double round(double val) {
         return Math.round(val * 10.0) / 10.0;

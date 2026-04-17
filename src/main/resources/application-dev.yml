@@ -10,5 +10,6 @@ affiliate:
 
 app:
   scheduler:
-    interval: 60000   # 1 min for testing
+    enabled: false    # Disabled by default - enable with caution
+    interval: 1800000   # 30 minutes for production (5 mins in dev)
   env: dev

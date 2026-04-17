@@ -28,6 +28,30 @@ This guide explains how to access and monitor all the metrics implemented in the
 - **Increments When**: A price drop notification is successfully saved
 - **Purpose**: Monitor notification creation
 
+### 5. **Products Tracked Counter**
+- **Metric Name**: `products.tracked`
+- **Type**: Counter
+- **Increments When**: A product is successfully tracked via the `/api/track` endpoint
+- **Purpose**: Monitor product tracking activity and API usage
+
+### 6. **Product Tracking Errors Counter**
+- **Metric Name**: `products.track.errors`
+- **Type**: Counter
+- **Increments When**: Product tracking fails due to validation errors or exceptions
+- **Purpose**: Track tracking failures for monitoring API health
+
+### 7. **Category Cache Hits Counter**
+- **Metric Name**: `category.cache.hits`
+- **Type**: Counter
+- **Increments When**: Category detection uses cached result instead of re-computing
+- **Purpose**: Monitor cache effectiveness for category detection performance
+
+### 8. **Category Cache Misses Counter**
+- **Metric Name**: `category.cache.misses`
+- **Type**: Counter
+- **Increments When**: Category detection computes result and caches it
+- **Purpose**: Track cache misses to understand cache warmup and new product categories
+
 ## Accessing Metrics
 
 ### Prerequisites
@@ -69,6 +93,10 @@ curl http://localhost:8080/actuator/metrics
     "scraping.success",
     "scraping.failure",
     "notifications.sent",
+    "products.tracked",
+    "products.track.errors",
+    "category.cache.hits",
+    "category.cache.misses",
     "jvm.memory.used",
     "jvm.memory.committed",
     "process.cpu.usage",
@@ -163,6 +191,90 @@ curl http://localhost:8080/actuator/metrics/notifications.sent
 }
 ```
 
+#### View Products Tracked
+```bash
+curl http://localhost:8080/actuator/metrics/products.tracked
+```
+
+**Response**:
+```json
+{
+  "name": "products.tracked",
+  "description": null,
+  "baseUnit": null,
+  "measurements": [
+    {
+      "statistic": "COUNT",
+      "value": 128.0
+    }
+  ],
+  "availableTags": []
+}
+```
+
+#### View Product Tracking Errors
+```bash
+curl http://localhost:8080/actuator/metrics/products.track.errors
+```
+
+**Response**:
+```json
+{
+  "name": "products.track.errors",
+  "description": null,
+  "baseUnit": null,
+  "measurements": [
+    {
+      "statistic": "COUNT",
+      "value": 5.0
+    }
+  ],
+  "availableTags": []
+}
+```
+
+#### View Category Cache Hits
+```bash
+curl http://localhost:8080/actuator/metrics/category.cache.hits
+```
+
+**Response**:
+```json
+{
+  "name": "category.cache.hits",
+  "description": null,
+  "baseUnit": null,
+  "measurements": [
+    {
+      "statistic": "COUNT",
+      "value": 200.0
+    }
+  ],
+  "availableTags": []
+}
+```
+
+#### View Category Cache Misses
+```bash
+curl http://localhost:8080/actuator/metrics/category.cache.misses
+```
+
+**Response**:
+```json
+{
+  "name": "category.cache.misses",
+  "description": null,
+  "baseUnit": null,
+  "measurements": [
+    {
+      "statistic": "COUNT",
+      "value": 50.0
+    }
+  ],
+  "availableTags": []
+}
+```
+
 ## All Actuator Endpoints
 
 ### Core Endpoints Available
@@ -189,6 +301,10 @@ http://localhost:8080/actuator/metrics/deals.generated
 http://localhost:8080/actuator/metrics/scraping.success
 http://localhost:8080/actuator/metrics/scraping.failure
 http://localhost:8080/actuator/metrics/notifications.sent
+http://localhost:8080/actuator/metrics/products.tracked
+http://localhost:8080/actuator/metrics/products.track.errors
+http://localhost:8080/actuator/metrics/category.cache.hits
+http://localhost:8080/actuator/metrics/category.cache.misses
 
 # JVM Metrics
 http://localhost:8080/actuator/metrics/jvm.memory.used
@@ -225,7 +341,11 @@ metrics = {
     "deals.generated": get_metric("deals.generated"),
     "scraping.success": get_metric("scraping.success"),
     "scraping.failure": get_metric("scraping.failure"),
-    "notifications.sent": get_metric("notifications.sent")
+    "notifications.sent": get_metric("notifications.sent"),
+    "products.tracked": get_metric("products.tracked"),
+    "products.track.errors": get_metric("products.track.errors"),
+    "category.cache.hits": get_metric("category.cache.hits"),
+    "category.cache.misses": get_metric("category.cache.misses")
 }
 
 for metric_name, data in metrics.items():
@@ -311,6 +431,10 @@ curl -s http://localhost:8080/actuator/health | jq '.'
 | `scraping.success` | Successful scrapes | Should be high | Good! | Monitor network |
 | `scraping.failure` | Failed scrapes | Should be low | Investigate HTML changes | Good! |
 | `notifications.sent` | Price drops detected | Varies | Verify deals are legitimate | Check if prices are dropping |
+| `products.tracked` | Products being tracked | Varies by usage | Monitor API usage | Ensure products are being tracked |
+| `products.track.errors` | Errors in tracking products | Should be low | Investigate API errors | Good! |
+| `category.cache.hits` | Cache hits for category detection | Should be high | Good cache performance | Monitor cache population |
+| `category.cache.misses` | Cache misses for category detection | Should be low | Optimize caching strategy | Monitor for new categories |
 
 ## Integration with External Tools
 
@@ -369,4 +493,3 @@ Before going to production, verify:
 - [ ] Scraping success rate > 95%
 - [ ] Deal generation is working
 - [ ] Notifications are being sent
-

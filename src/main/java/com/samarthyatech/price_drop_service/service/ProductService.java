@@ -94,8 +94,8 @@ public class ProductService {
     private Mono<Product> updateProduct(Product existing, Product incoming) {
         Double newPrice = incoming.getCurrentPrice();
 
-        boolean priceChanged = !newPrice.equals(existing.getCurrentPrice());
-        boolean lowestPriceUpdated = newPrice < existing.getLowestPrice();
+        boolean priceChanged = existing.getCurrentPrice() == null || !newPrice.equals(existing.getCurrentPrice());
+        boolean lowestPriceUpdated = existing.getLowestPrice() == null || newPrice < existing.getLowestPrice();
 
         if (lowestPriceUpdated) {
             existing.setLowestPrice(newPrice);
@@ -111,6 +111,8 @@ public class ProductService {
         if (categoryCache.containsKey(cacheKey)) {
             categoryCacheHits.increment();
         }
+
+        double oldPrice = existing.getCurrentPrice() != null ? existing.getCurrentPrice() : 0;
 
         existing.setCurrentPrice(newPrice);
         existing.setCurrency(incoming.getCurrency());
@@ -131,7 +133,7 @@ public class ProductService {
                 .doOnSuccess(p -> {
                     if (priceChanged) {
                         logger.debug("Price updated for ASIN: {} from {} to {}",
-                            existing.getAsin(), existing.getCurrentPrice(), newPrice);
+                            existing.getAsin(), oldPrice, newPrice);
                     }
                 });
     }

@@ -20,4 +20,9 @@ app:
   scheduler:
     enabled: false    # Disabled by default - enable with caution
     interval: 1800000   # 30 minutes for production (5 mins in dev)
+  scraping:
+    max-concurrency: 1
+    request-delay-ms: 2500
+    max-retries: 1
+    captcha-cooldown-minutes: 30
   env: prod

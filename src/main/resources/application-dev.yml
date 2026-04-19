@@ -6,10 +6,15 @@ spring:
       uri: mongodb://localhost:27017/pricedrop-dev
       
 affiliate:
-  tag: keertiawast-21
+  tag: keertiawast00-21
 
 app:
   scheduler:
     enabled: false    # Disabled by default - enable with caution
-    interval: 1800000   # 30 minutes for production (5 mins in dev)
+    interval: 600000   # 10 minutes in dev to reduce CAPTCHA pressure
+  scraping:
+    max-concurrency: 1
+    request-delay-ms: 2000
+    max-retries: 1
+    captcha-cooldown-minutes: 20
   env: dev

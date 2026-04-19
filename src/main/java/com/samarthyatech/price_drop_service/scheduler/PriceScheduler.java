@@ -1,5 +1,6 @@
 package com.samarthyatech.price_drop_service.scheduler;
 
+import com.samarthyatech.price_drop_service.config.AppConfig;
 import com.samarthyatech.price_drop_service.repo.ProductRepository;
 import com.samarthyatech.price_drop_service.scraper.PriceScraper;
 import com.samarthyatech.price_drop_service.service.PriceDropService;
@@ -36,6 +37,7 @@ public class PriceScheduler {
     private final WebClient webClient;
     private final PriceScraper scraper;
     private final PriceDropService priceDropService;
+    private final AppConfig appConfig;
 
     @Value("${app.scheduler.enabled:false}")
     private boolean schedulerEnabled;
@@ -49,7 +51,8 @@ public class PriceScheduler {
      * IMPORTANT: This method should run ALONE - comment out runScheduler() to use this.
      * Having both methods run causes concurrent issues and resource exhaustion.
      */
-    @Scheduled(fixedRateString = "${app.scheduler.interval}", initialDelay = 10000)
+    // Disabled: use runScheduler() instead for full price drop + notification support
+    // @Scheduled(fixedRateString = "${app.scheduler.interval}", initialDelay = 10000)
     public void updatePrices() {
         if (!schedulerEnabled) {
             return;
@@ -61,43 +64,43 @@ public class PriceScheduler {
             return;
         }
 
-        try {
-            logger.info("Starting scheduled price update job");
-            long startTime = System.currentTimeMillis();
+        logger.info("Starting scheduled price update job");
+        long startTime = System.currentTimeMillis();
 
-            productRepo.findAll()
-                    .flatMap(product ->
-                            webClient.get()
-                                    .uri(product.getUrl())
-                                    .retrieve()
-                                    .bodyToMono(String.class)
-                                    .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)).maxBackoff(Duration.ofSeconds(10)))
-                                    .map(scraper::extractPrice)
-                                    .flatMap(price -> {
-                                        if (price != null) {
-                                            logger.debug("Extracted price {} for ASIN: {}", price, product.getAsin());
-                                            product.setCurrentPrice(price);
-                                            return service.trackProduct(product);
-                                        } else {
-                                            logger.warn("Failed to extract price for ASIN: {}", product.getAsin());
-                                            return reactor.core.publisher.Mono.empty();
-                                        }
-                                    })
-                                    .onErrorContinue((e, obj) -> logger.error("Error updating price for product: {}", obj, e))
-                    )
-                    .doOnComplete(() -> {
-                        long duration = System.currentTimeMillis() - startTime;
-                        logger.info("Price update job completed successfully in {} ms", duration);
-                    })
-                    .doOnError(error -> logger.error("Price update job failed", error))
-                    .subscribe(
-                        unused -> {},
-                        error -> logger.error("Unexpected error in price update", error),
-                        () -> logger.info("Price update job finished")
-                    );
-        } finally {
-            isProcessing.set(false);
-        }
+        productRepo.findAll()
+                .flatMap(product ->
+                        webClient.get()
+                                .uri(product.getUrl())
+                                .retrieve()
+                                .bodyToMono(String.class)
+                                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)).maxBackoff(Duration.ofSeconds(10)))
+                                .flatMap(html -> reactor.core.publisher.Mono.justOrEmpty(scraper.extractPrice(html)))
+                                .flatMap(price -> {
+                                    logger.debug("Extracted price {} for ASIN: {}", price, product.getAsin());
+                                    product.setCurrentPrice(price);
+                                    return service.trackProduct(product);
+                                })
+                                .switchIfEmpty(reactor.core.publisher.Mono.defer(() -> {
+                                    logger.warn("Failed to extract price for ASIN: {}", product.getAsin());
+                                    return reactor.core.publisher.Mono.empty();
+                                }))
+                                .onErrorResume(e -> {
+                                    logger.error("Error updating price for ASIN: {}", product.getAsin(), e);
+                                    return reactor.core.publisher.Mono.empty();
+                                }),
+                        3
+                )
+                .doOnComplete(() -> {
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.info("Price update job completed successfully in {} ms", duration);
+                })
+                .doOnError(error -> logger.error("Price update job failed", error))
+                .doFinally(signalType -> isProcessing.set(false))
+                .subscribe(
+                    unused -> {},
+                    error -> logger.error("Unexpected error in price update", error),
+                    () -> logger.info("Price update job finished")
+                );
     }
 
     /**
@@ -110,7 +113,7 @@ public class PriceScheduler {
      * Having both methods run causes concurrent issues and resource exhaustion.
      */
     // COMMENT OUT THIS METHOD IF USING updatePrices() ABOVE
-    // @Scheduled(fixedRateString = "${app.scheduler.interval}", initialDelay = 10000)
+    @Scheduled(fixedDelayString = "${app.scheduler.interval}", initialDelay = 10000)
     public void runScheduler() {
         if (!schedulerEnabled) {
             return;
@@ -122,28 +125,31 @@ public class PriceScheduler {
             return;
         }
 
-        try {
-            logger.info("Starting scheduled price drop processing job");
-            long startTime = System.currentTimeMillis();
+        logger.info("Starting scheduled price drop processing job");
+        long startTime = System.currentTimeMillis();
+        int concurrency = Math.max(appConfig.getScraping().getMaxConcurrency(), 1);
+        Duration requestDelay = Duration.ofMillis(Math.max(appConfig.getScraping().getRequestDelayMs(), 0));
 
-            productRepo.findAll()
-                    .flatMap(product -> {
-                        logger.debug("Processing product: {} (ASIN: {})", product.getTitle(), product.getAsin());
-                        return priceDropService.processProduct(product);
-                    })
-                    .onErrorContinue((e, obj) -> logger.error("Error processing product {}: {}", obj, e.getMessage()))
-                    .doOnComplete(() -> {
-                        long duration = System.currentTimeMillis() - startTime;
-                        logger.info("Price drop processing job completed in {} ms", duration);
-                    })
-                    .doOnError(error -> logger.error("Scheduler processing error", error))
-                    .subscribe(
-                        unused -> {},
-                        error -> logger.error("Unexpected error in scheduler", error),
-                        () -> logger.info("Scheduler finished")
-                    );
-        } finally {
-            isProcessing.set(false);
-        }
+        productRepo.findAll()
+                .delayElements(requestDelay)
+                .flatMap(product -> {
+                    logger.debug("Processing product: {} (ASIN: {})", product.getTitle(), product.getAsin());
+                    return priceDropService.processProduct(product)
+                            .onErrorResume(e -> {
+                                logger.error("Error processing ASIN: {}", product.getAsin(), e);
+                                return reactor.core.publisher.Mono.empty();
+                            });
+                }, concurrency)
+                .doOnComplete(() -> {
+                    long duration = System.currentTimeMillis() - startTime;
+                    logger.info("Price drop processing job completed in {} ms", duration);
+                })
+                .doOnError(error -> logger.error("Scheduler processing error", error))
+                .doFinally(signalType -> isProcessing.set(false))
+                .subscribe(
+                    unused -> {},
+                    error -> logger.error("Unexpected error in scheduler", error),
+                    () -> logger.info("Scheduler finished")
+                );
     }
 }

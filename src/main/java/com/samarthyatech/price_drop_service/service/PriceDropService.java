@@ -1,5 +1,6 @@
 package com.samarthyatech.price_drop_service.service;
 
+import com.samarthyatech.price_drop_service.config.AppConfig;
 import com.samarthyatech.price_drop_service.model.Notification;
 import com.samarthyatech.price_drop_service.model.PriceHistory;
 import com.samarthyatech.price_drop_service.model.Product;
@@ -19,7 +20,9 @@ import reactor.core.publisher.Mono;
 import reactor.util.retry.Retry;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Service for processing product price updates through web scraping.
@@ -37,8 +40,10 @@ public class PriceDropService {
     private final WebClient webClient;
     private final PriceScraper scraper;
     private final MeterRegistry meterRegistry;
+    private final AppConfig appConfig;
 
     private Counter scrapeSuccess, scrapeFailure, notificationsSent;
+    private final AtomicReference<Instant> captchaCooldownUntil = new AtomicReference<>(Instant.EPOCH);
 
     @PostConstruct
     public void init() {
@@ -57,23 +62,52 @@ public class PriceDropService {
      */
     public Mono<Void> processProduct(Product product) {
 
-        return webClient.get()
+        Instant blockedUntil = captchaCooldownUntil.get();
+        if (Instant.now().isBefore(blockedUntil)) {
+            logger.debug("Skipping scrape for ASIN: {} because CAPTCHA cooldown is active until {}",
+                    product.getAsin(), blockedUntil);
+            return Mono.empty();
+        }
+
+        Mono<String> htmlMono = webClient.get()
                 .uri(product.getUrl())
                 .retrieve()
-                .bodyToMono(String.class)
-                .retryWhen(Retry.backoff(3, Duration.ofSeconds(1)).maxBackoff(Duration.ofSeconds(10)))
-                .map(scraper::extractPrice)
-                .doOnNext(price -> {
-                    if (price != null) {
-                        scrapeSuccess.increment();
-                    } else {
+                .bodyToMono(String.class);
+
+        int maxRetries = Math.max(appConfig.getScraping().getMaxRetries(), 0);
+        if (maxRetries > 0) {
+            htmlMono = htmlMono.retryWhen(Retry.backoff(maxRetries, Duration.ofSeconds(1))
+                    .maxBackoff(Duration.ofSeconds(5)));
+        }
+
+        return htmlMono.flatMap(html -> {
+                    if (scraper.containsCaptcha(html)) {
+                        activateCaptchaCooldown(product.getAsin());
                         scrapeFailure.increment();
+                        return Mono.empty();
                     }
+
+                    return Mono.justOrEmpty(scraper.extractPrice(html))
+                        .doOnNext(price -> {
+                            scrapeSuccess.increment();
+                            logger.debug("Extracted price {} for ASIN: {}", price, product.getAsin());
+                        })
+                        .switchIfEmpty(Mono.defer(() -> {
+                            scrapeFailure.increment();
+                            logger.warn("Could not extract price from scraped HTML for ASIN: {}", product.getAsin());
+                            return Mono.empty();
+                        }));
                 })
-                .filter(price -> price != null)
                 .flatMap(newPrice -> {
 
                     Double oldPrice = product.getCurrentPrice();
+
+                    if (isSuspiciousPrice(oldPrice, newPrice)) {
+                        logger.warn("Rejected suspicious scraped price {} for ASIN: {}. Existing price: {}",
+                                newPrice, product.getAsin(), oldPrice);
+                        scrapeFailure.increment();
+                        return Mono.empty();
+                    }
 
                     boolean isDrop =
                             oldPrice != null && newPrice < oldPrice;
@@ -105,7 +139,28 @@ public class PriceDropService {
                     logger.error("Failed to scrape price for ASIN: {} after retries", product.getAsin(), e);
                     scrapeFailure.increment();
                 })
-                .onErrorResume(e -> Mono.empty()); // Continue processing other products
+                .onErrorResume(e -> Mono.empty())
+                .then(); // Continue processing other products
+    }
+
+    private void activateCaptchaCooldown(String asin) {
+        long cooldownMinutes = Math.max(appConfig.getScraping().getCaptchaCooldownMinutes(), 1);
+        Instant blockedUntil = Instant.now().plus(Duration.ofMinutes(cooldownMinutes));
+        captchaCooldownUntil.set(blockedUntil);
+        logger.warn("CAPTCHA detected while scraping ASIN: {}. Pausing further scraping until {}", asin, blockedUntil);
+    }
+
+    private boolean isSuspiciousPrice(Double oldPrice, Double newPrice) {
+
+        if (newPrice == null || newPrice <= 0 || newPrice < 10) {
+            return true;
+        }
+
+        if (oldPrice == null || oldPrice <= 0) {
+            return false;
+        }
+
+        return oldPrice >= 500 && newPrice <= oldPrice * 0.02;
     }
 
     private boolean shouldNotify(Product p, Double newPrice) {

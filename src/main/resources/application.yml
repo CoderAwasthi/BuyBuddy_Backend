@@ -34,15 +34,19 @@ management:
 app:
   scheduler:
     enabled: true
-    interval: 60000   # 30 minutes in ms 1800000
+    interval: 1800000   # 30 minutes in ms
   env: dev
 
   scraping:
     user-agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64)
-    timeout: 5000
+    timeout: 10000
+    max-concurrency: 1
+    request-delay-ms: 1500
+    max-retries: 1
+    captcha-cooldown-minutes: 30
 
   deals:
     limit: 10
 
 affiliate:
-  tag: yourtag-21
+  tag: keertiawast00-21

@@ -23,6 +23,10 @@ public class AppConfig {
     public static class Scraping {
         private String userAgent;
         private int timeout;
+        private int maxConcurrency = 1;
+        private long requestDelayMs = 1500;
+        private int maxRetries = 1;
+        private long captchaCooldownMinutes = 30;
     }
 
     @Data

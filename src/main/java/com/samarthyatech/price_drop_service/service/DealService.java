@@ -18,7 +18,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Service for analyzing product price deals based on historical data.
@@ -159,19 +158,20 @@ public class DealService {
 
         if (history == null || history.isEmpty()) {
             logger.debug("No price history for ASIN: {}, returning default deal response", p.getAsin());
+            double currentPrice = roundCurrency(p.getCurrentPrice());
             return new DealResponse(
                     p.getAsin(),
                     p.getTitle(),
                     p.getImage(),
-                    p.getCurrentPrice(),
+                    currentPrice,
                     (double) 0,
                     "WAIT",
                     (double) 0,
                     "NO_DATA",
                     "Tracking started recently",
-                    p.getCurrentPrice(),
-                    p.getCurrentPrice(),
-                    p.getCurrentPrice(),
+                    currentPrice,
+                    currentPrice,
+                    currentPrice,
                     p.getCurrency(),
                     p.getCategory(),
                     p.getSubCategory()
@@ -195,11 +195,11 @@ public class DealService {
         // 🔥 NEW: Trend + Insight
         String trend = getTrend(history);
         String insight = generateInsight(history, current, lowest);
-        Map<String, Double> statMap = Map.of(
-                "min", stats.getMin(),
-                "max", stats.getMax(),
-                "avg", stats.getAvg()
-        );
+
+        double roundedCurrent = roundCurrency(current);
+        double roundedMin = roundCurrency(stats.getMin());
+        double roundedMax = roundCurrency(stats.getMax());
+        double roundedAvg = roundCurrency(stats.getAvg());
 
         logger.debug("Calculated deal for ASIN: {} - Score: {}, Decision: {}, Trend: {}, Insight: {}", p.getAsin(), round(score), decision, trend, insight);
 
@@ -209,15 +209,15 @@ public class DealService {
                 p.getAsin(),
                 p.getTitle(),
                 p.getImage(),
-                current,
+                roundedCurrent,
                 round(score),
                 decision,
                 round(discount * 100),
                 trend,
                 insight,
-                statMap.get("min"),
-                statMap.get("max"),
-                statMap.get("avg"),
+                roundedMin,
+                roundedMax,
+                roundedAvg,
                 p.getCurrency(),
                 p.getCategory(),
                 p.getSubCategory()
@@ -277,5 +277,12 @@ public class DealService {
 
     private double round(double val) {
         return Math.round(val * 10.0) / 10.0;
+    }
+
+    private double roundCurrency(Double val) {
+        if (val == null || Double.isNaN(val) || Double.isInfinite(val)) {
+            return 0;
+        }
+        return Math.round(val * 100.0) / 100.0;
     }
 }

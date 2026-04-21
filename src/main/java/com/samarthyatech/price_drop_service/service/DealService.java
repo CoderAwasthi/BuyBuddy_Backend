@@ -93,7 +93,7 @@ public class DealService {
                                 priceHistoryRepository.findTop3ByAsinOrderByDateDesc(p.getAsin()).collectList()
                         ).map(tuple -> calculateDeal(p, tuple.getT1(), tuple.getT2()))
                 )
-                .sort((a, b) -> Double.compare(b.getScore(), a.getScore()))
+                .sort(this::compareByPrice)
                 .take(dealLimit)
                 .doOnComplete(() -> logger.info("Retrieved top {} deals", dealLimit));
     }
@@ -114,7 +114,7 @@ public class DealService {
                                 priceHistoryRepository.findTop3ByAsinOrderByDateDesc(p.getAsin()).collectList()
                         ).map(tuple -> calculateDeal(p, tuple.getT1(), tuple.getT2()))
                 )
-                .sort((a, b) -> Double.compare(b.getScore(), a.getScore()))
+                .sort(this::compareByPrice)
                 .take(dealLimit)
                 .doOnComplete(() -> logger.info("Retrieved top {} deals for category: {}", dealLimit, category));
     }
@@ -149,9 +149,15 @@ public class DealService {
                                 priceHistoryRepository.findTop3ByAsinOrderByDateDesc(p.getAsin()).collectList()
                         ).map(tuple -> calculateDeal(p, tuple.getT1(), tuple.getT2()))
                 )
-                .sort((a, b) -> Double.compare(b.getScore(), a.getScore()))
+                .sort(this::compareByPrice)
                 .take(dealLimit)
                 .doOnComplete(() -> logger.info("Retrieved top {} deals for category: {}, subCategory: {}, excluding ASIN: {}", dealLimit, category, subCategory, excludeAsin));
+    }
+
+    private int compareByPrice(DealResponse first, DealResponse second) {
+        double firstPrice = first.getPrice() != null ? first.getPrice() : Double.MAX_VALUE;
+        double secondPrice = second.getPrice() != null ? second.getPrice() : Double.MAX_VALUE;
+        return Double.compare(firstPrice, secondPrice);
     }
 
     private DealResponse calculateDeal(Product p, Stats stats, List<PriceHistory> history) {

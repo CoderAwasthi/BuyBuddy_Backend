@@ -36,6 +36,8 @@
 			<id>dev</id>
 			<properties>
 				<spring-boot.run.profiles>dev</spring-boot.run.profiles>
+				<!-- Run in the Maven JVM so JetBrains Maven Debug can bind breakpoints -->
+				<spring-boot.run.fork>false</spring-boot.run.fork>
 			</properties>
 		</profile>
 		<profile>
@@ -88,6 +90,8 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
+					<!-- Keep app in same JVM for IDE Maven debug sessions -->
+					<fork>false</fork>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
@@ -107,6 +111,8 @@
 							<goal>compile</goal>
 						</goals>
 						<configuration>
+							<debug>true</debug>
+							<parameters>true</parameters>
 							<annotationProcessorPaths>
 								<path>
 									<groupId>org.projectlombok</groupId>
@@ -122,6 +128,8 @@
 							<goal>testCompile</goal>
 						</goals>
 						<configuration>
+							<debug>true</debug>
+							<parameters>true</parameters>
 							<annotationProcessorPaths>
 								<path>
 									<groupId>org.projectlombok</groupId>

@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 /**
  * REST controller for product tracking and deal analysis operations.
  * Provides endpoints for tracking products, retrieving price history, and analyzing deals.
@@ -32,6 +34,18 @@ public class ProductController {
     @PostMapping("/track")
     public Mono<Void> track(@RequestBody Product product) {
         return productService.trackProduct(product);
+    }
+
+    /**
+     * Tracks products in bulk.
+     * Accepts an array/list of products and processes each with the standard tracking flow.
+     *
+     * @param products List of products to track
+     * @return Mono that completes when all products are processed
+     */
+    @PostMapping("/track/bulk")
+    public Mono<Void> trackBulk(@RequestBody List<Product> products) {
+        return productService.trackProductsBulk(products);
     }
 
     /**

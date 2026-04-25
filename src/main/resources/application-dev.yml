@@ -3,8 +3,8 @@ spring:
     name: price-drop-service
   data:
     mongodb:
-      uri: mongodb://localhost:27017/pricedrop-dev
-      
+      uri: mongodb://localhost:27017/pricedrop-dev?connectTimeoutMS=10000&socketTimeoutMS=30000&serverSelectionTimeoutMS=10000&maxPoolSize=50
+
 affiliate:
   tag: keertiawast00-21
 

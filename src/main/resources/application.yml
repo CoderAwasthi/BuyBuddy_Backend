@@ -7,7 +7,7 @@ spring:
 
   data:
     mongodb:
-      uri: mongodb://localhost:27017/pricedrop
+      uri: mongodb://localhost:27017/pricedrop-dev
 
 #  jackson:
 #    serialization:

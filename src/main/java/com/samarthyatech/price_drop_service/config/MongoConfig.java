@@ -1,5 +1,6 @@
 package com.samarthyatech.price_drop_service.config;
 
+import com.mongodb.ConnectionString;
 import com.mongodb.reactivestreams.client.MongoClient;
 import com.mongodb.reactivestreams.client.MongoClients;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,7 +18,9 @@ public class MongoConfig extends AbstractReactiveMongoConfiguration {
 
     @Override
     protected String getDatabaseName() {
-        return "pricedrop-prod";
+        ConnectionString connectionString = new ConnectionString(mongoUri);
+        String database = connectionString.getDatabase();
+        return (database != null && !database.isBlank()) ? database : "pricedrop-dev";
     }
 
     @Override
